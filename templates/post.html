@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ post.title }} – Cat's Eye Marble{% endblock %}
+
+{% block main %}
+    <section id="breadcrumbs">
+        {% for breadcrumb in breadcrumbs %}
+            <a href="{{ breadcrumb.path }}">{{ breadcrumb.label }}</a> ›
+        {% endfor %}
+        <h1 class="page-title proper-title">{{ post.title }}</h1>
+        Originally posted
+            <b>{{ post.timestamp.format("%Y-%m-%d %H:%M UTC") }}</b><br>
+    </section>
+
+    <section id="art">
+        <img src="/static/tinket.png" alt="alt text goes here">
+    </section>
+
+    <section id="browsing">
+        {% if let Some(prev_post) = prev_post %}
+            <a class="prev" href="{{ prev_post.path }}">
+                <b class="browsing-label">Prev:</b>
+                <span class="browsing-title proper-title">{{ prev_post.title }}</span>
+                <img src="/static/tinket.png" alt="">
+            </a>
+        {% endif %}
+        {% if let Some(next_post) = next_post %}
+            <a class="next" href="{{ next_post.path }}">
+                <b class="browsing-label">Next:</b>
+                <span class="browsing-title proper-title">{{ next_post.title }}</span>
+                <img src="/static/tinket.png" alt="">
+            </a>
+        {% endif %}
+    </section>
+
+    <section>{{ post.description|markdown }}</section>
+{% endblock %}

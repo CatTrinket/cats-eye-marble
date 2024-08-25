@@ -1,0 +1,191 @@
+/*** Colours ***/
+
+*:root {
+    --color-theme: #407B8A;
+    --color-theme-highlight: #4B8C9D;
+    --color-section: #FFE1CF;
+    --color-section-highlight: #F2D3C2;
+    --color-neutral: #808080;
+    --color-neutral-border: #222222;
+    --color-text: #000000;
+}
+
+
+/*** Page layout ***/
+
+*:root {
+    font-size: 16px;
+    font-family: Noto Sans, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    background: var(--color-theme) url(/static/bg-pattern.png);
+    background-size: 120px;
+}
+
+header {
+    display: flex;
+    flex-direction: column;
+}
+
+header > a {
+    /* Using line-height + padding to get the desired banner height so that
+       a) the height will squish down proportionally on narrow screens,
+       b) if it does end up using a wider font, it will wrap nicely */
+    font-size: min(5rem, 10vw);
+    line-height: 1em;
+    padding: 0.5em 0;
+    color: var(--color-section);
+    text-align: center;
+    background: color-mix(
+        in srgb, var(--color-theme-highlight), transparent 30%
+    );
+}
+
+nav {
+    padding: 0.25rem 0.5rem;
+    background: var(--color-section);
+    border: solid var(--color-theme-highlight);
+    border-width: 0.25rem 0;
+    font-size: 1.25rem;
+}
+
+nav > ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav > ul > li + li::before { content: "\A0•\A0" }
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 0;
+    gap: 1.5rem;
+}
+
+h1.page-title { margin: 0; }
+
+section {
+    width: 80rem;
+    max-width: 100%;
+    box-sizing: border-box;
+    background: var(--color-section);
+    padding: 1rem 2rem;
+}
+
+section > *:first-child { margin-top: 0; }
+section > *:last-child { margin-bottom: 0; }
+
+
+/*** Common styles ***/
+
+a {
+    font-weight: bold;
+    text-decoration: none;
+    color: var(--color-theme);
+}
+
+a:hover { text-decoration: underline; }
+
+*.proper-title { font-style: italic; }
+
+
+/*** Art page ***/
+
+section#art {
+    width: 100%;
+    padding: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+    background: var(--color-neutral) url(/static/checker.svg);
+    border: solid var(--color-neutral-border);
+    border-width: 0.25rem 0;
+}
+
+section#art img {
+    width: calc(2839px / 4);
+    max-width: 100%;
+}
+
+section#browsing {
+    display: grid;
+    grid-template: "prev next" / 1fr 1fr;
+    padding: 0;
+    gap: 0.5rem;
+    background: none;
+}
+
+@media (width > 640px) {
+    /* Blank rectangles in case there is no prev/next link */
+    section#browsing::before, section#browsing::after {
+        content: '';
+        background: var(--color-theme-highlight);
+        z-index: -1;
+    }
+    section#browsing::before { grid-area: prev; }
+    section#browsing::after { grid-area: next; }
+}
+
+@media (max-width: 640px) {
+    section#browsing {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+section#browsing > a {
+    display: grid;
+    column-gap: 1rem;
+    background: var(--color-section);
+}
+
+section#browsing > a:hover {
+    background: var(--color-section-highlight);
+    text-decoration: none;
+}
+
+a:hover > span.browsing-title {
+    text-decoration: underline;
+}
+
+section#browsing > a.prev {
+    grid-area: prev;
+    grid-template:
+        "thumbnail label"
+        "thumbnail title"
+        / max-content 1fr;
+}
+
+section#browsing > a.next {
+    grid-area: next;
+    grid-template:
+        "label thumbnail"
+        "title thumbnail"
+        / 1fr max-content;
+    text-align: right;
+}
+
+b.browsing-label {
+    grid-area: label;
+    align-self: end;
+    color: var(--color-text);
+    font-weight: bold;
+}
+
+span.browsing-title { grid-area: title; }
+
+section#browsing img {
+    grid-area: thumbnail;
+    height: 100px;
+}

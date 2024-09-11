@@ -17,7 +17,6 @@ create table posts (
     description text not null,
 
     foreign key (directory_id) references directories (id),
-    foreign key (author_id) references authors (id),
     unique (directory_id, slug)
 );
 

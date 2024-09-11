@@ -1,4 +1,4 @@
-use crate::schema::{directories, posts};
+use crate::schema::{directories, post_images, posts};
 
 diesel::table! {
     directory_paths (directory_id) {
@@ -24,6 +24,8 @@ diesel::allow_tables_to_appear_in_same_query!(directory_paths, post_paths);
 
 diesel::allow_tables_to_appear_in_same_query!(directory_paths, directories);
 diesel::allow_tables_to_appear_in_same_query!(directory_paths, posts);
+diesel::allow_tables_to_appear_in_same_query!(directory_paths, post_images);
 
 diesel::allow_tables_to_appear_in_same_query!(post_paths, directories);
 diesel::allow_tables_to_appear_in_same_query!(post_paths, posts);
+diesel::allow_tables_to_appear_in_same_query!(post_paths, post_images);

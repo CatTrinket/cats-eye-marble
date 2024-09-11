@@ -1,4 +1,4 @@
-#[derive(diesel::prelude::Queryable, diesel::prelude::Selectable)]
+#[derive(diesel::Queryable, diesel::Selectable, diesel::Identifiable)]
 #[diesel(table_name = crate::schema::directories)]
 pub struct Directory {
     pub id: i32,
@@ -13,7 +13,7 @@ pub struct Directory {
     pub path: String,
 }
 
-#[derive(diesel::prelude::Queryable, diesel::prelude::Selectable)]
+#[derive(diesel::Queryable, diesel::Selectable, diesel::Identifiable)]
 #[diesel(table_name = crate::schema::posts)]
 pub struct Post {
     pub id: i32,
@@ -28,4 +28,19 @@ pub struct Post {
     #[diesel(select_expression = crate::views::post_paths::path)]
     #[diesel(select_expression_type = crate::views::post_paths::path)]
     pub path: String,
+}
+
+#[derive(
+    diesel::Queryable,
+    diesel::Selectable,
+    diesel::Identifiable,
+    diesel::Associations,
+)]
+#[diesel(belongs_to(Post, foreign_key=post_id))]
+#[diesel(table_name = crate::schema::post_images)]
+pub struct PostImage {
+    pub id: i32,
+    pub post_id: i32,
+    pub order: i32,
+    pub alt_text: String,
 }

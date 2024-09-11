@@ -32,8 +32,4 @@ diesel::table! {
 diesel::joinable!(post_images -> posts (post_id));
 diesel::joinable!(posts -> directories (directory_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    directories,
-    post_images,
-    posts,
-);
+diesel::allow_tables_to_appear_in_same_query!(directories, post_images, posts,);

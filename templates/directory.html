@@ -1,3 +1,27 @@
 {% extends "layout.html" %}
 
-{% block title %}Directory stub – Cat's Eye Marble{% endblock %}
+{% block title %}{{ directory.title }} – Cat's Eye Marble{% endblock %}
+
+{% block main %}
+    <section id="breadcrumbs">
+        <h1 class="page-title">{{ directory.title }}</h1>
+    </section>
+
+    <section id="directory-contents">
+        {% for post in posts %}
+            <a href="{{ post.path }}">
+                <figure>
+                    <img
+                        src="{{ post.path }}/thumbnail"
+                        alt=""
+                        srcset="{{ post.path }}/thumbnail?height=400 2x"
+                    >
+                    <figcaption>
+                        <span class="proper-title">{{ post.title }}</span>
+                        <time>{{ post.timestamp.format("%Y-%m-%d") }}</time>
+                    </figcaption>
+                </figure>
+            </a>
+        {% endfor %}
+    </section>
+{% endblock %}

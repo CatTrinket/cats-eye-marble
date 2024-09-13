@@ -42,7 +42,10 @@ struct PostTemplate {
 
 #[derive(askama::Template)]
 #[template(path = "directory.html")]
-struct DirectoryTemplate {}
+struct DirectoryTemplate {
+    directory: Directory,
+    posts: Vec<Post>,
+}
 
 #[derive(rocket::Responder)]
 enum PathResponse {
@@ -245,7 +248,26 @@ async fn directory(
     db: &mut rocket_db_pools::Connection<CEMDB>,
     path: &std::path::PathBuf,
 ) -> Result<Option<DirectoryTemplate>, rocket::http::Status> {
-    return Ok(None);
+    let path = format!("/{}", path.display());
+    let result = directories::table
+        .inner_join(directory_paths::table)
+        .filter(directory_paths::path.eq(path))
+        .select(Directory::as_select())
+        .first(db)
+        .await
+        .optional()
+        .map_err(log_error)?;
+
+    let Some(directory) = result else { return Ok(None) };
+
+    let posts = Post::belonging_to(&directory)
+        .inner_join(post_paths::table)
+        .select(Post::as_select())
+        .load(db)
+        .await
+        .map_err(log_error)?;
+
+    Ok(Some(DirectoryTemplate { directory: directory, posts: posts }))
 }
 
 #[rocket::launch]

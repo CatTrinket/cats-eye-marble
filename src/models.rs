@@ -13,7 +13,13 @@ pub struct Directory {
     pub path: String,
 }
 
-#[derive(diesel::Queryable, diesel::Selectable, diesel::Identifiable)]
+#[derive(
+    diesel::Queryable,
+    diesel::Selectable,
+    diesel::Identifiable,
+    diesel::Associations,
+)]
+#[diesel(belongs_to(Directory, foreign_key=directory_id))]
 #[diesel(table_name = crate::schema::posts)]
 pub struct Post {
     pub id: i32,

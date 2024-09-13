@@ -100,6 +100,63 @@ a:hover { text-decoration: underline; }
 
 *.proper-title { font-style: italic; }
 
+figure { margin: 0; }
+
+
+/*** Directory page ***/
+
+section#directory-contents {
+    width: auto;
+    max-width: 1980px;
+    background: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    list-style-type: none;
+}
+
+@media (max-width: 640px) {
+    section#directory-contents { padding: 0; }
+}
+
+section#directory-contents a {
+    text-decoration: none;
+}
+
+section#directory-contents figure {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-theme-highlight);
+}
+
+section#directory-contents img {
+    max-height: 200px;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+section#directory-contents figcaption {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    background: var(--color-section);
+    padding: 0.5rem 1rem;
+}
+
+section#directory-contents > a:hover figcaption {
+    background: var(--color-section-highlight);
+}
+
+section#directory-contents > a:hover span.proper-title {
+    text-decoration: underline;
+}
+
+section#directory-contents time {
+    color: black;
+    font-weight: normal;
+}
+
 
 /*** Art page ***/
 
@@ -110,6 +167,7 @@ section#art {
     gap: 1.5rem;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
     background: var(--color-neutral) url(/static/checker.svg);
     border: solid var(--color-neutral-border);
     border-width: 0.25rem 0;

@@ -125,6 +125,7 @@ async fn feed(
         .map_err(log_error)?;
 
     let files = PostImage::belonging_to(&posts)
+        .order(post_images::order)
         .select(PostImage::as_select())
         .load(&mut db)
         .await
@@ -274,6 +275,7 @@ async fn post(
     let Some(post) = result else { return Ok(None) };
 
     let files = PostImage::belonging_to(&post)
+        .order(post_images::order)
         .select(PostImage::as_select())
         .load(db)
         .await
@@ -366,6 +368,7 @@ async fn directory(
 
     let posts = Post::belonging_to(&directory)
         .inner_join(post_paths::table)
+        .order(posts::timestamp)
         .select(Post::as_select())
         .load(db)
         .await
@@ -374,6 +377,7 @@ async fn directory(
     let subdirs = directories::table
         .inner_join(directory_paths::table)
         .filter(directories::parent_directory_id.eq(directory.id))
+        .order(directories::title)
         .select(Directory::as_select())
         .load(db)
         .await

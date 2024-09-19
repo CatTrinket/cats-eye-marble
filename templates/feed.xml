@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>tag:{{ domain }},2024:feed</id>
     <title>Cat's Eye Marble</title>
-    <link href="{{ base_url }}" />
+    <link href="{{ base_url }}/" />
     <link rel="self" href="{{ base_url }}/feed.xml" />
 
     <author>

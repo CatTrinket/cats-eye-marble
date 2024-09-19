@@ -4,7 +4,9 @@
 
 {% block main %}
     <section id="breadcrumbs">
-        <h1 class="page-title">{{ directory.title }}</h1>
+        <h1
+            {% if directory.has_proper_title %}class="proper-title"{% endif %}
+        >{{ directory.title }}</h1>
     </section>
 
     <section id="directory-contents">
@@ -17,7 +19,11 @@
                         srcset="{{ post.path }}/thumbnail?height=400 2x"
                     >
                     <figcaption>
-                        <span class="proper-title">{{ post.title }}</span>
+                        <span
+                            {% if post.has_proper_title %}
+                                class="proper-title"
+                            {% endif %}
+                        >{{ post.title }}</span>
                         <time>{{ post.timestamp.format("%Y-%m-%d") }}</time>
                     </figcaption>
                 </figure>

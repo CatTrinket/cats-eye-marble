@@ -6,6 +6,7 @@ diesel::table! {
         title -> Text,
         slug -> Text,
         parent_directory_id -> Nullable<Int4>,
+        has_proper_title -> Bool,
     }
 }
 
@@ -26,6 +27,7 @@ diesel::table! {
         timestamp -> Timestamp,
         directory_id -> Int4,
         description -> Text,
+        has_proper_title -> Bool,
     }
 }
 

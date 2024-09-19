@@ -74,7 +74,7 @@ main {
     gap: 1.5rem;
 }
 
-h1.page-title { margin: 0; }
+h1 { margin: 0; }
 
 section {
     width: 80rem;
@@ -148,7 +148,7 @@ section#directory-contents > a:hover figcaption {
     background: var(--color-section-highlight);
 }
 
-section#directory-contents > a:hover span.proper-title {
+section#directory-contents > a:hover span {
     text-decoration: underline;
 }
 

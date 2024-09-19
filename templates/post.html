@@ -7,7 +7,10 @@
         {% for breadcrumb in breadcrumbs %}
             <a href="{{ breadcrumb.path }}">{{ breadcrumb.label }}</a> ›
         {% endfor %}
-        <h1 class="page-title proper-title">{{ post.title }}</h1>
+
+        <h1
+            {% if post.has_proper_title %}class="proper-title"{% endif %}
+        >{{ post.title }}</h1>
 
         {% if post.timestamp < crate::SITE_LAUNCH -%}
             Originally posted
@@ -30,7 +33,9 @@
         {% if let Some(prev_post) = prev_post %}
             <a class="prev" href="{{ prev_post.path }}">
                 <b class="browsing-label">Prev:</b>
-                <span class="browsing-title proper-title">{{ prev_post.title }}</span>
+                <span class="browsing-title
+                     {% if prev_post.has_proper_title %}proper-title{% endif %}
+                ">{{ prev_post.title }}</span>
                 <img
                     src="{{ prev_post.path }}/thumbnail?height=100"
                     alt=""  {#- The title is right beside it #}
@@ -45,7 +50,9 @@
         {% if let Some(next_post) = next_post %}
             <a class="next" href="{{ next_post.path }}">
                 <b class="browsing-label">Next:</b>
-                <span class="browsing-title proper-title">{{ next_post.title }}</span>
+                <span class="browsing-title
+                     {% if next_post.has_proper_title %}proper-title{% endif %}
+                ">{{ next_post.title }}</span>
                 <img
                     src="{{ next_post.path }}/thumbnail?height=100"
                     alt=""

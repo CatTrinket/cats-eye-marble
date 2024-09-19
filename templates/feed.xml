@@ -18,7 +18,13 @@
     {% for (post, files) in std::iter::zip(posts, files) %}
         <entry>
             <id>tag:{{ domain }},2024:post/{{ post.id }}</id>
-            <title type="html"><![CDATA[<i>{{ post.title }}</i>]]></title>
+            <title type="html"><![CDATA[
+                {%- if post.has_proper_title -%}
+                    <i>{{ post.title }}</i>
+                {%- else -%}
+                    {{ post.title }}
+                {%- endif -%}
+            ]]></title>
             <link href="{{ base_url }}{{ post.path }}" />
 
             {% let time = post.timestamp.format("%Y-%m-%dT%H:%M:%SZ") %}

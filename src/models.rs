@@ -3,6 +3,7 @@
 pub struct Directory {
     pub id: i32,
     pub title: String,
+    pub has_proper_title: bool,
     pub slug: String,
     pub parent_directory_id: Option<i32>,
 
@@ -24,6 +25,7 @@ pub struct Directory {
 pub struct Post {
     pub id: i32,
     pub title: String,
+    pub has_proper_title: bool,
     pub slug: String,
     pub timestamp: chrono::NaiveDateTime,
     pub directory_id: i32,

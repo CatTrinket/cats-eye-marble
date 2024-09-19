@@ -20,6 +20,17 @@ struct CEMConfig {
     base_url: String,
 }
 
+/// A cachebust timestamp appended to the URL of static files.
+static CACHEBUST: std::sync::LazyLock<i64> =
+    std::sync::LazyLock::new(|| chrono::Utc::now().timestamp());
+
+/// Return the cachebust timestamp.
+///
+/// This wrapper function is necessary as Askama doesn't seem to like *.
+fn cachebust() -> i64 {
+    *CACHEBUST
+}
+
 /// Midnight on the date the site launched (2024-08-25).
 ///
 /// Anything dated earlier is labelled "Originally posted on..." and doesn't
@@ -382,9 +393,19 @@ fn rocket() -> _ {
     let config: CEMConfig =
         rocket.figment().extract_inner("cem").expect("Expected valid config");
 
+    // Putting the cachebust in the /static/ path rather than the query means
+    // CSS can use relative URLs for background images etc. and avoid needing
+    // the cachebust parameter in the CSS itself.
+
+    // TODO: the Cache-Control header for static files is currently added by
+    // nginx.  Come Rocket 0.6, use FileServer's header rewrite method instead.
+
     rocket
         .attach(CEMDB::init())
         .manage(config)
         .mount("/", rocket::routes![index, feed, path])
-        .mount("/static", rocket::fs::FileServer::from("static"))
+        .mount(
+            format!("/static/{}", *CACHEBUST),
+            rocket::fs::FileServer::from("static"),
+        )
 }

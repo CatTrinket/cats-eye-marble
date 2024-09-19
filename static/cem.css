@@ -23,7 +23,7 @@ body {
     flex-direction: column;
     min-height: 100vh;
     margin: 0;
-    background: var(--color-theme) url(/static/bg-pattern.png);
+    background: var(--color-theme) url(bg-pattern.png);
     background-size: 120px;
 }
 
@@ -202,7 +202,7 @@ section#art {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    background: var(--color-neutral) url(/static/checker.svg);
+    background: var(--color-neutral) url(checker.svg);
     border: solid var(--color-neutral-border);
     border-width: 0.25rem 0;
 }

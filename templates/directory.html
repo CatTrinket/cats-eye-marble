@@ -4,9 +4,21 @@
 
 {% block main %}
     <section id="breadcrumbs">
+        {% for breadcrumb in breadcrumbs %}
+            <a href="{{ breadcrumb.path }}">{{ breadcrumb.label }}</a> ›
+        {% endfor %}
+
         <h1
             {% if directory.has_proper_title %}class="proper-title"{% endif %}
         >{{ directory.title }}</h1>
+    </section>
+
+    <section id="directory-children">
+        {% for subdir in subdirs %}
+            <a href="{{ subdir.path }}">
+                {{ subdir.title }}
+            </a>
+        {% endfor %}
     </section>
 
     <section id="directory-contents">

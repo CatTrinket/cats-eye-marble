@@ -105,6 +105,28 @@ figure { margin: 0; }
 
 /*** Directory page ***/
 
+section#directory-children {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0;
+    background: none;
+    font-size: 1.125rem;
+}
+
+section#directory-children > a {
+    background: var(--color-section);
+    padding: 0.5rem 1rem;
+}
+
+section#directory-children > a:before {
+    content: "↪";
+}
+
+section#directory-children > a:hover {
+    background: var(--color-section-highlight);
+}
+
 section#directory-contents {
     width: auto;
     max-width: 1980px;
@@ -112,6 +134,8 @@ section#directory-contents {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
+    padding-top: 0;
+    padding-bottom: 0;
     justify-content: center;
     list-style-type: none;
 }

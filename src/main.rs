@@ -77,8 +77,10 @@ struct PostTemplate {
 #[derive(askama::Template)]
 #[template(path = "directory.html")]
 struct DirectoryTemplate {
+    breadcrumbs: Vec<Breadcrumb>,
     directory: Directory,
     posts: Vec<Post>,
+    subdirs: Vec<Directory>,
 }
 
 #[derive(rocket::Responder)]
@@ -333,6 +335,26 @@ async fn directory(
 
     let Some(directory) = result else { return Ok(None) };
 
+    let mut parent_id = directory.parent_directory_id;
+    let mut breadcrumbs = Vec::new();
+
+    while let Some(id) = parent_id {
+        let directory = directories::table
+            .find(id)
+            .inner_join(directory_paths::table)
+            .select(Directory::as_select())
+            .first(db)
+            .await
+            .map_err(log_error)?;
+
+        breadcrumbs
+            .push(Breadcrumb { path: directory.path, label: directory.title });
+
+        parent_id = directory.parent_directory_id;
+    }
+
+    let breadcrumbs = breadcrumbs.into_iter().rev().collect();
+
     let posts = Post::belonging_to(&directory)
         .inner_join(post_paths::table)
         .select(Post::as_select())
@@ -340,7 +362,20 @@ async fn directory(
         .await
         .map_err(log_error)?;
 
-    Ok(Some(DirectoryTemplate { directory: directory, posts: posts }))
+    let subdirs = directories::table
+        .inner_join(directory_paths::table)
+        .filter(directories::parent_directory_id.eq(directory.id))
+        .select(Directory::as_select())
+        .load(db)
+        .await
+        .map_err(log_error)?;
+
+    Ok(Some(DirectoryTemplate {
+        breadcrumbs: breadcrumbs,
+        directory: directory,
+        posts: posts,
+        subdirs: subdirs,
+    }))
 }
 
 #[rocket::launch]

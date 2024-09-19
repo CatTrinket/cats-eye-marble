@@ -2,8 +2,9 @@
 <html lang="en-CA">
     <head>
         <title>{% block title %}Cat's Eye Marble{% endblock %}</title>
-        <link rel="stylesheet" href="/static/cem.css">
-        <link rel="icon" href="/static/favicon.png">
+        {% let cachebust = crate::cachebust() %}
+        <link rel="stylesheet" href="/static/{{ cachebust }}/cem.css">
+        <link rel="icon" href="/static/{{ cachebust }}/favicon.png">
         <link
             rel="alternate" href="/feed.xml" type="application/atom+xml"
             title="Cat's Eye Marble"

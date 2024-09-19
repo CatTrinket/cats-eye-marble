@@ -158,7 +158,9 @@ section#directory-contents time {
 }
 
 
-/*** Art page ***/
+/*** Post page ***/
+
+section#breadcrumbs time { font-weight: bold; }
 
 section#art {
     display: flex;

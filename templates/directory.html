@@ -24,7 +24,11 @@
                                 class="proper-title"
                             {% endif %}
                         >{{ post.title }}</span>
-                        <time>{{ post.timestamp.format("%Y-%m-%d") }}</time>
+                        <time datetime="{{
+                            post.timestamp.format("%Y-%m-%d %H:%M:%SZ")
+                        }}">
+                            {{ post.timestamp.format("%Y-%m-%d") }}
+                        </time>
                     </figcaption>
                 </figure>
             </a>

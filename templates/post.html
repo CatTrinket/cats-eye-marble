@@ -17,7 +17,9 @@
         {%- else -%}
             Posted
         {%- endif %}
-        <b>{{ post.timestamp.format("%Y-%m-%d %H:%M UTC") }}</b><br>
+        <time datetime="{{ post.timestamp.format("%Y-%m-%d %H:%M:%SZ") }}">
+            {{ post.timestamp.format("%Y-%m-%d %H:%M UTC") }}
+        </time>
     </section>
 
     <section id="art">

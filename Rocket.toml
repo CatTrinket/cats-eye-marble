@@ -2,6 +2,7 @@
 address = "0.0.0.0"
 port = 8001
 cem.upload_dir = "..."
+cem.base_url = "http://dev.catseyemarble.com:8001"
 
 [default.databases.cem]
 url = "..."

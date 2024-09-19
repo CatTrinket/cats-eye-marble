@@ -8,8 +8,13 @@
             <a href="{{ breadcrumb.path }}">{{ breadcrumb.label }}</a> ›
         {% endfor %}
         <h1 class="page-title proper-title">{{ post.title }}</h1>
-        Originally posted
-            <b>{{ post.timestamp.format("%Y-%m-%d %H:%M UTC") }}</b><br>
+
+        {% if post.timestamp < crate::SITE_LAUNCH -%}
+            Originally posted
+        {%- else -%}
+            Posted
+        {%- endif %}
+        <b>{{ post.timestamp.format("%Y-%m-%d %H:%M UTC") }}</b><br>
     </section>
 
     <section id="art">

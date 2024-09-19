@@ -17,7 +17,24 @@ struct CEMDB(rocket_db_pools::diesel::PgPool);
 #[serde(crate = "rocket::serde")]
 struct CEMConfig {
     upload_dir: std::path::PathBuf,
+    base_url: String,
 }
+
+/// Midnight on the date the site launched (2024-08-25).
+///
+/// Anything dated earlier is labelled "Originally posted on..." and doesn't
+/// show up in the Atom feed.
+const SITE_LAUNCH: chrono::naive::NaiveDateTime = {
+    // expect/unwrap in const aren't available yet at the time of writing
+    let Some(date) = chrono::naive::NaiveDate::from_ymd_opt(2024, 8, 25)
+    else {
+        panic!("Expected launch date")
+    };
+    let Some(datetime) = date.and_hms_opt(0, 0, 0) else {
+        panic!("Expected launch datetime")
+    };
+    datetime
+};
 
 struct Breadcrumb {
     path: String,
@@ -28,6 +45,23 @@ struct Breadcrumb {
 #[template(path = "hello.html")]
 struct HelloTemplate {
     world: String,
+}
+
+/// The Atom feed template.
+#[derive(askama::Template)]
+#[template(path = "feed.xml")]
+struct FeedTemplate {
+    posts: Vec<Post>,
+    files: Vec<Vec<PostImage>>,
+    base_url: String,
+    domain: String,
+}
+
+/// A wrapper around the Atom template to set the Content-Type.
+#[derive(rocket::Responder)]
+#[response(content_type = "application/atom+xml")]
+struct FeedResponse {
+    template: FeedTemplate,
 }
 
 #[derive(askama::Template)]
@@ -62,6 +96,45 @@ fn log_error<T>(_: T) -> rocket::http::Status {
 #[rocket::get("/")]
 async fn index() -> HelloTemplate {
     HelloTemplate { world: "worlb".to_string() }
+}
+
+/// Serve the Atom feed.
+#[rocket::get("/feed.xml")]
+async fn feed(
+    mut db: rocket_db_pools::Connection<CEMDB>,
+    config: &rocket::State<CEMConfig>,
+) -> Result<FeedResponse, rocket::http::Status> {
+    let posts = posts::table
+        .inner_join(post_paths::table)
+        .filter(posts::timestamp.ge(SITE_LAUNCH))
+        .order(posts::timestamp)
+        .select(Post::as_select())
+        .load(&mut db)
+        .await
+        .map_err(log_error)?;
+
+    let files = PostImage::belonging_to(&posts)
+        .select(PostImage::as_select())
+        .load(&mut db)
+        .await
+        .map_err(log_error)?
+        .grouped_by(&posts);
+
+    let domain = rocket::http::uri::Absolute::parse(&config.base_url)
+        .expect("Expected valid base URL")
+        .authority()
+        .expect("Expected base URL authority")
+        .host()
+        .to_string();
+
+    Ok(FeedResponse {
+        template: FeedTemplate {
+            posts: posts,
+            files: files,
+            base_url: config.base_url.clone(),
+            domain: domain,
+        },
+    })
 }
 
 /// Respond to anything involving an arbitrary path.
@@ -279,6 +352,6 @@ fn rocket() -> _ {
     rocket
         .attach(CEMDB::init())
         .manage(config)
-        .mount("/", rocket::routes![index, path])
+        .mount("/", rocket::routes![index, feed, path])
         .mount("/static", rocket::fs::FileServer::from("static"))
 }

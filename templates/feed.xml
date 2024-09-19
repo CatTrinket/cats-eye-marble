@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>tag:{{ domain }},2024:feed</id>
+    <title>Cat's Eye Marble</title>
+    <link href="{{ base_url }}" />
+    <link rel="self" href="{{ base_url }}/feed.xml" />
+
+    <author>
+        <name>Trinket Holloway</name>
+        <email>trinket.feed@catseyemarble.com</email>
+    </author>
+
+    {% if let Some(post) = posts.last() %}
+        <updated>{{ post.timestamp.format("%Y-%m-%dT%H:%M:%SZ") }}</updated>
+    {% endif %}
+
+    {% for (post, files) in std::iter::zip(posts, files) %}
+        <entry>
+            <id>tag:{{ domain }},2024:post/{{ post.id }}</id>
+            <title type="html"><![CDATA[<i>{{ post.title }}</i>]]></title>
+            <link href="{{ base_url }}{{ post.path }}" />
+
+            {% let time = post.timestamp.format("%Y-%m-%dT%H:%M:%SZ") %}
+            <published>{{ time }}</published>
+            <updated>{{ time }}</updated>
+
+            <content type="html"><![CDATA[
+                <style>img { max-width: 100%; max-height: 1080px; }</style>
+                {% for file in files %}
+                    <img 
+                        src="{{ base_url }}{{ post.path }}/files/{{ file.order }}"
+                        alt="{{ file.alt_text }}"
+                    >
+                {% endfor %}
+                {{ post.description|markdown }}
+            ]]></content>
+        </entry>
+    {% endfor %}
+</feed>

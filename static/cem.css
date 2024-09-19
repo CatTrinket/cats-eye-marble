@@ -74,7 +74,15 @@ main {
     gap: 1.5rem;
 }
 
-h1 { margin: 0; }
+h1 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+h2 {
+    font-size: 1.375rem;
+    border-bottom: 2px solid var(--color-theme);
+}
 
 section {
     width: 80rem;

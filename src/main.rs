@@ -43,9 +43,7 @@ struct Breadcrumb {
 
 #[derive(askama::Template)]
 #[template(path = "hello.html")]
-struct HelloTemplate {
-    world: String,
-}
+struct HelloTemplate {}
 
 /// The Atom feed template.
 #[derive(askama::Template)]
@@ -97,7 +95,7 @@ fn log_error<T>(_: T) -> rocket::http::Status {
 
 #[rocket::get("/")]
 async fn index() -> HelloTemplate {
-    HelloTemplate { world: "worlb".to_string() }
+    HelloTemplate {}
 }
 
 /// Serve the Atom feed.

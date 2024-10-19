@@ -9,10 +9,15 @@ use self::models::{Directory, Post, PostImage};
 use self::schema::{directories, post_images, posts};
 use self::views::{directory_paths, post_paths};
 
+/// Allows us to get a database connection as a request guard; see
+/// `rocket_db_pools`.
 #[derive(rocket_db_pools::Database)]
 #[database("cem")]
 struct CEMDB(rocket_db_pools::diesel::PgPool);
 
+/// Config specific to Cat's Eye Marble.
+///
+/// These values are taken from the `cem` table in Rocket.toml.
 #[derive(rocket::serde::Deserialize)]
 #[serde(crate = "rocket::serde")]
 struct CEMConfig {
@@ -20,7 +25,7 @@ struct CEMConfig {
     base_url: String,
 }
 
-/// A cachebust timestamp appended to the URL of static files.
+/// A cachebust timestamp used in the URL of static files.
 static CACHEBUST: std::sync::LazyLock<i64> =
     std::sync::LazyLock::new(|| chrono::Utc::now().timestamp());
 
@@ -47,16 +52,19 @@ const SITE_LAUNCH: chrono::naive::NaiveDateTime = {
     datetime
 };
 
+/// An item to be included in the heirarchy of parent links above the page
+/// title.
 struct Breadcrumb {
     path: String,
     label: String,
 }
 
+/// The template for the `index` route.
 #[derive(askama::Template)]
 #[template(path = "hello.html")]
 struct HelloTemplate {}
 
-/// The Atom feed template.
+/// The template for the `feed` route.
 #[derive(askama::Template)]
 #[template(path = "feed.xml")]
 struct FeedTemplate {
@@ -66,13 +74,14 @@ struct FeedTemplate {
     domain: String,
 }
 
-/// A wrapper around the Atom template to set the Content-Type.
+/// A wrapper around the Atom feed template to set the Content-Type.
 #[derive(rocket::Responder)]
 #[response(content_type = "application/atom+xml")]
 struct FeedResponse {
     template: FeedTemplate,
 }
 
+/// The template for the `post` route.
 #[derive(askama::Template)]
 #[template(path = "post.html")]
 struct PostTemplate {
@@ -83,6 +92,7 @@ struct PostTemplate {
     next_post: Option<Post>,
 }
 
+/// The template for the `directory` route.
 #[derive(askama::Template)]
 #[template(path = "directory.html")]
 struct DirectoryTemplate {
@@ -92,6 +102,7 @@ struct DirectoryTemplate {
     subdirs: Vec<Directory>,
 }
 
+/// A responder wrapping all the other responders the `path` route combines.
 #[derive(rocket::Responder)]
 enum PathResponse {
     File(rocket::fs::NamedFile),
@@ -99,11 +110,17 @@ enum PathResponse {
     Directory(DirectoryTemplate),
 }
 
+/// Log an error and return an HTTP status.
+///
+/// Returning a status lets all our routes return `Result<T, Status>` and then
+/// tidily deal with any other `Result` type with `result.map_err(log_error)?`
+/// if there's nothing better to be done with the error.
 fn log_error<T>(_: T) -> rocket::http::Status {
     // TODO: actually log it
     rocket::http::Status::InternalServerError
 }
 
+/// Serve the home page.
 #[rocket::get("/")]
 async fn index() -> HelloTemplate {
     HelloTemplate {}
@@ -194,6 +211,7 @@ fn parse_file_path(path: &std::path::PathBuf) -> Option<(String, i32)> {
     Some((path, num))
 }
 
+/// Serve a single file attached to a post.
 async fn file(
     db: &mut rocket_db_pools::Connection<CEMDB>,
     path: &std::path::PathBuf,
@@ -227,6 +245,7 @@ async fn file(
     Ok(Some(file))
 }
 
+/// Serve a thumbnail image for a post.
 async fn thumbnail(
     db: &mut rocket_db_pools::Connection<CEMDB>,
     path: &std::path::PathBuf,
@@ -258,6 +277,7 @@ async fn thumbnail(
     Ok(Some(file))
 }
 
+/// Serve the page for a post.
 async fn post(
     db: &mut rocket_db_pools::Connection<CEMDB>,
     path: &std::path::PathBuf,
@@ -330,6 +350,7 @@ async fn post(
     }))
 }
 
+/// Serve the page for a directory, listing posts and subdirectories.
 async fn directory(
     db: &mut rocket_db_pools::Connection<CEMDB>,
     path: &std::path::PathBuf,
@@ -391,6 +412,7 @@ async fn directory(
     }))
 }
 
+/// Launch Rocket.
 #[rocket::launch]
 fn rocket() -> _ {
     let rocket = rocket::build();

@@ -2,6 +2,11 @@
 
 {% block title %}{{ directory.title }} – Cat's Eye Marble{% endblock %}
 
+{% block open_graph %}
+    <meta name="og:url" content="{{ base_url }}{{ directory.path }}">
+    <meta name="og:title" content="{{ directory.title }}">
+{% endblock %}
+
 {% block main %}
     <section id="breadcrumbs">
         {% for breadcrumb in breadcrumbs %}

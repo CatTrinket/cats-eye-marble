@@ -1,5 +1,10 @@
 {% extends "layout.html" %}
 
+{% block open_graph %}
+    <meta name="og:url" content="{{ base_url }}/">
+    <meta name="og:title" content="Home">
+{% endblock %}
+
 {% block main %}
     <section>
         <h2>Hewwo, Internet!!</h2>

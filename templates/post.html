@@ -2,6 +2,32 @@
 
 {% block title %}{{ post.title }} – Cat's Eye Marble{% endblock %}
 
+{% block open_graph %}
+    <meta name="og:url" content="{{ base_url }}{{ post.path }}">
+    <meta name="og:type" content="article">
+    <meta name="og:title" content="{{ post.title }}">
+    {# Including Markdown source as plain text here on purpose #}
+    <meta name="og:description" content="{{ post.description }}">
+    <meta
+        name="og:image"
+        content="{{ base_url }}{{ post.path }}/thumbnail?height=1080"
+    >
+    {# files.first() doesn't seem to work here because of Diesel shenanigans.
+    Eating whitespace after break stifles an unreachable code warning lolll #}
+    {% for file in files %}
+        <meta name="og:image:alt" content="{{ file.alt_text }}">
+        {% break -%}
+    {% endfor %}
+    {# Mixing in this one (1) Twitter card line seems to do the right thing
+    across various websites.  afaict it's just the done thing; there's no Open
+    Graph equivalent here #}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta
+        name="article:published_time"
+        content="{{ post.timestamp.format("%Y-%m-%dT%H:%M:%SZ") }}"
+    >
+{% endblock %}
+
 {% block main %}
     <section id="breadcrumbs">
         {% for breadcrumb in breadcrumbs %}

@@ -61,8 +61,10 @@ struct Breadcrumb {
 
 /// The template for the `index` route.
 #[derive(askama::Template)]
-#[template(path = "hello.html")]
-struct HelloTemplate {}
+#[template(path = "index.html")]
+struct IndexTemplate {
+    base_url: String,
+}
 
 /// The template for the `feed` route.
 #[derive(askama::Template)]
@@ -85,6 +87,7 @@ struct FeedResponse {
 #[derive(askama::Template)]
 #[template(path = "post.html")]
 struct PostTemplate {
+    base_url: String,
     breadcrumbs: Vec<Breadcrumb>,
     post: Post,
     files: Vec<PostImage>,
@@ -96,6 +99,7 @@ struct PostTemplate {
 #[derive(askama::Template)]
 #[template(path = "directory.html")]
 struct DirectoryTemplate {
+    base_url: String,
     breadcrumbs: Vec<Breadcrumb>,
     directory: Directory,
     posts: Vec<Post>,
@@ -122,8 +126,8 @@ fn log_error<T>(_: T) -> rocket::http::Status {
 
 /// Serve the home page.
 #[rocket::get("/")]
-async fn index() -> HelloTemplate {
-    HelloTemplate {}
+async fn index(config: &rocket::State<CEMConfig>) -> IndexTemplate {
+    IndexTemplate { base_url: config.base_url.clone() }
 }
 
 /// Serve the Atom feed.
@@ -185,9 +189,13 @@ async fn path(
         thumbnail(&mut db, &path, height, &config.upload_dir).await?
     {
         Ok(Some(PathResponse::File(thumbnail)))
-    } else if let Some(post) = post(&mut db, &path).await? {
+    } else if let Some(post) =
+        post(&mut db, &path, config.base_url.clone()).await?
+    {
         Ok(Some(PathResponse::Post(post)))
-    } else if let Some(directory) = directory(&mut db, &path).await? {
+    } else if let Some(directory) =
+        directory(&mut db, &path, config.base_url.clone()).await?
+    {
         Ok(Some(PathResponse::Directory(directory)))
     } else {
         Ok(None)
@@ -281,6 +289,7 @@ async fn thumbnail(
 async fn post(
     db: &mut rocket_db_pools::Connection<CEMDB>,
     path: &std::path::PathBuf,
+    base_url: String,
 ) -> Result<Option<PostTemplate>, rocket::http::Status> {
     let path = format!("/{}", path.display());
     let result = posts::table
@@ -342,6 +351,7 @@ async fn post(
         .map_err(log_error)?;
 
     Ok(Some(PostTemplate {
+        base_url: base_url,
         breadcrumbs: breadcrumbs,
         post: post,
         files: files,
@@ -354,6 +364,7 @@ async fn post(
 async fn directory(
     db: &mut rocket_db_pools::Connection<CEMDB>,
     path: &std::path::PathBuf,
+    base_url: String,
 ) -> Result<Option<DirectoryTemplate>, rocket::http::Status> {
     let path = format!("/{}", path.display());
     let result = directories::table
@@ -405,6 +416,7 @@ async fn directory(
         .map_err(log_error)?;
 
     Ok(Some(DirectoryTemplate {
+        base_url: base_url,
         breadcrumbs: breadcrumbs,
         directory: directory,
         posts: posts,

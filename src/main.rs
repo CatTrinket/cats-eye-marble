@@ -1,29 +1,10 @@
-pub mod models;
-pub mod schema;
-pub mod views;
-
 use rocket_db_pools::diesel::prelude::*;
 use rocket_db_pools::Database as _;
 
-use self::models::{Directory, Post, PostImage};
-use self::schema::{directories, post_images, posts};
-use self::views::{directory_paths, post_paths};
-
-/// Allows us to get a database connection as a request guard; see
-/// `rocket_db_pools`.
-#[derive(rocket_db_pools::Database)]
-#[database("cem")]
-struct CEMDB(rocket_db_pools::diesel::PgPool);
-
-/// Config specific to Cat's Eye Marble.
-///
-/// These values are taken from the `cem` table in Rocket.toml.
-#[derive(rocket::serde::Deserialize)]
-#[serde(crate = "rocket::serde")]
-struct CEMConfig {
-    upload_dir: std::path::PathBuf,
-    base_url: String,
-}
+use cem::db::{
+    directories, directory_paths, post_images, post_paths, posts, Directory,
+    Post, PostImage,
+};
 
 /// A cachebust timestamp used in the URL of static files.
 static CACHEBUST: std::sync::LazyLock<i64> =
@@ -126,15 +107,15 @@ fn log_error<T>(_: T) -> rocket::http::Status {
 
 /// Serve the home page.
 #[rocket::get("/")]
-async fn index(config: &rocket::State<CEMConfig>) -> IndexTemplate {
+async fn index(config: &rocket::State<cem::CEMConfig>) -> IndexTemplate {
     IndexTemplate { base_url: config.base_url.clone() }
 }
 
 /// Serve the Atom feed.
 #[rocket::get("/feed.xml")]
 async fn feed(
-    mut db: rocket_db_pools::Connection<CEMDB>,
-    config: &rocket::State<CEMConfig>,
+    mut db: rocket_db_pools::Connection<cem::db::CEMDB>,
+    config: &rocket::State<cem::CEMConfig>,
 ) -> Result<FeedResponse, rocket::http::Status> {
     let posts = posts::table
         .inner_join(post_paths::table)
@@ -176,10 +157,10 @@ async fn feed(
 /// at the end of the path.  TODO: look into request guards instead
 #[rocket::get("/<path..>?<height>", rank = 1000)]
 async fn path(
-    mut db: rocket_db_pools::Connection<CEMDB>,
+    mut db: rocket_db_pools::Connection<cem::db::CEMDB>,
     path: std::path::PathBuf,
     height: Option<i32>,
-    config: &rocket::State<CEMConfig>,
+    config: &rocket::State<cem::CEMConfig>,
 ) -> Result<Option<PathResponse>, rocket::http::Status> {
     // Tried to write this with .or_else but couldn't figure it out with async
     if let Some(file) = file(&mut db, &path, &config.upload_dir).await? {
@@ -221,7 +202,7 @@ fn parse_file_path(path: &std::path::PathBuf) -> Option<(String, i32)> {
 
 /// Serve a single file attached to a post.
 async fn file(
-    db: &mut rocket_db_pools::Connection<CEMDB>,
+    db: &mut rocket_db_pools::Connection<cem::db::CEMDB>,
     path: &std::path::PathBuf,
     upload_dir: &std::path::PathBuf,
 ) -> Result<Option<rocket::fs::NamedFile>, rocket::http::Status> {
@@ -255,7 +236,7 @@ async fn file(
 
 /// Serve a thumbnail image for a post.
 async fn thumbnail(
-    db: &mut rocket_db_pools::Connection<CEMDB>,
+    db: &mut rocket_db_pools::Connection<cem::db::CEMDB>,
     path: &std::path::PathBuf,
     height: Option<i32>,
     upload_dir: &std::path::PathBuf,
@@ -287,7 +268,7 @@ async fn thumbnail(
 
 /// Serve the page for a post.
 async fn post(
-    db: &mut rocket_db_pools::Connection<CEMDB>,
+    db: &mut rocket_db_pools::Connection<cem::db::CEMDB>,
     path: &std::path::PathBuf,
     base_url: String,
 ) -> Result<Option<PostTemplate>, rocket::http::Status> {
@@ -362,7 +343,7 @@ async fn post(
 
 /// Serve the page for a directory, listing posts and subdirectories.
 async fn directory(
-    db: &mut rocket_db_pools::Connection<CEMDB>,
+    db: &mut rocket_db_pools::Connection<cem::db::CEMDB>,
     path: &std::path::PathBuf,
     base_url: String,
 ) -> Result<Option<DirectoryTemplate>, rocket::http::Status> {
@@ -428,7 +409,7 @@ async fn directory(
 #[rocket::launch]
 fn rocket() -> _ {
     let rocket = rocket::build();
-    let config: CEMConfig =
+    let config: cem::CEMConfig =
         rocket.figment().extract_inner("cem").expect("Expected valid config");
 
     // Putting the cachebust in the /static/ path rather than the query means
@@ -439,7 +420,7 @@ fn rocket() -> _ {
     // nginx.  Come Rocket 0.6, use FileServer's header rewrite method instead.
 
     rocket
-        .attach(CEMDB::init())
+        .attach(cem::db::CEMDB::init())
         .manage(config)
         .mount("/", rocket::routes![index, feed, path])
         .mount(

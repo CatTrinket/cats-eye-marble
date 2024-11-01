@@ -5,7 +5,7 @@
 //! so these have to live in a separate module so as not to get overwritten
 //! every time the main schema changes.
 
-use crate::schema::{directories, post_images, posts};
+use super::schema::{directories, post_images, posts};
 
 diesel::table! {
     directory_paths (directory_id) {

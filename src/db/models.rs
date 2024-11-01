@@ -2,7 +2,7 @@
 
 /// A directory containing posts and subdirectories.
 #[derive(diesel::Queryable, diesel::Selectable, diesel::Identifiable)]
-#[diesel(table_name = crate::schema::directories)]
+#[diesel(table_name = super::directories)]
 pub struct Directory {
     pub id: i32,
     pub title: String,
@@ -16,8 +16,8 @@ pub struct Directory {
     /// The full path for this directory, including all parent directories
     // Requires joining to the directory_paths view, which is fine; I always
     // want the path
-    #[diesel(select_expression = crate::views::directory_paths::path)]
-    #[diesel(select_expression_type = crate::views::directory_paths::path)]
+    #[diesel(select_expression = super::directory_paths::path)]
+    #[diesel(select_expression_type = super::directory_paths::path)]
     pub path: String,
 }
 
@@ -29,7 +29,7 @@ pub struct Directory {
     diesel::Associations,
 )]
 #[diesel(belongs_to(Directory, foreign_key=directory_id))]
-#[diesel(table_name = crate::schema::posts)]
+#[diesel(table_name = super::posts)]
 pub struct Post {
     pub id: i32,
     pub title: String,
@@ -47,8 +47,8 @@ pub struct Post {
     /// The full path for this post, including all parent directories
     // Requires joining to the post_paths view, which is fine; I always want
     // the path
-    #[diesel(select_expression = crate::views::post_paths::path)]
-    #[diesel(select_expression_type = crate::views::post_paths::path)]
+    #[diesel(select_expression = super::post_paths::path)]
+    #[diesel(select_expression_type = super::post_paths::path)]
     pub path: String,
 }
 
@@ -64,7 +64,7 @@ pub struct Post {
     diesel::Associations,
 )]
 #[diesel(belongs_to(Post, foreign_key=post_id))]
-#[diesel(table_name = crate::schema::post_images)]
+#[diesel(table_name = super::post_images)]
 pub struct PostImage {
     pub id: i32,
     pub post_id: i32,

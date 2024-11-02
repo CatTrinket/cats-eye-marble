@@ -110,6 +110,23 @@ a:hover { text-decoration: underline; }
 
 figure { margin: 0; }
 
+hr {
+    border-top: 1px solid var(--color-theme);
+    border-bottom: 1px solid var(--color-theme-highlight);
+    border-left: none;
+    border-right: none;
+}
+
+blockquote {
+    background: var(--color-section-highlight);
+    padding: 0.5rem 1rem;
+    margin: 1rem 0;
+    border-left: 4px solid var(--color-theme);
+}
+
+blockquote > *:first-child { margin-top: 0; }
+blockquote > *:last-child { margin-bottom: 0; }
+
 
 /*** Directory page ***/
 

@@ -41,7 +41,9 @@
                         <figcaption>
                             <span
                                 {% if post.has_proper_title %}
-                                    class="proper-title"
+                                    class="post-title proper-title"
+                                {% else %}
+                                    class="post-title"
                                 {% endif %}
                             >{{ post.title }}</span>
                             <time datetime="{{

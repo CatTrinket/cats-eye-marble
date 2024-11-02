@@ -173,14 +173,25 @@ section#directory-contents figcaption {
     flex-direction: column;
     text-align: center;
     background: var(--color-section);
-    padding: 0.5rem 1rem;
+    padding: 0.5rem;
+}
+
+section#directory-contents span.post-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min-content;
+    min-width: 100%;
+    min-height: 2lh;
+    line-height: 1;
+    text-wrap: balance;
 }
 
 section#directory-contents > a:hover figcaption {
     background: var(--color-section-highlight);
 }
 
-section#directory-contents > a:hover span {
+section#directory-contents > a:hover span.post-title {
     text-decoration: underline;
 }
 

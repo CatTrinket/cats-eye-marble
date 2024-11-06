@@ -177,6 +177,7 @@ section#directory-contents figure {
     display: flex;
     flex-direction: column;
     background: var(--color-theme-highlight);
+    height: 100%;
 }
 
 section#directory-contents img {
@@ -188,6 +189,7 @@ section#directory-contents img {
 section#directory-contents figcaption {
     display: flex;
     flex-direction: column;
+    flex: 1;
     text-align: center;
     background: var(--color-section);
     padding: 0.5rem;
@@ -197,6 +199,7 @@ section#directory-contents span.post-title {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 1;
     width: min-content;
     min-width: 100%;
     min-height: 2lh;

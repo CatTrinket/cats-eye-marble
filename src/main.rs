@@ -45,6 +45,7 @@ struct Breadcrumb {
 #[template(path = "index.html")]
 struct IndexTemplate {
     base_url: String,
+    posts: Vec<Post>,
 }
 
 /// The template for the `feed` route.
@@ -107,8 +108,20 @@ fn log_error<T>(_: T) -> rocket::http::Status {
 
 /// Serve the home page.
 #[rocket::get("/")]
-async fn index(config: &rocket::State<cem::CEMConfig>) -> IndexTemplate {
-    IndexTemplate { base_url: config.base_url.clone() }
+async fn index(
+    mut db: rocket_db_pools::Connection<cem::db::CEMDB>,
+    config: &rocket::State<cem::CEMConfig>,
+) -> Result<IndexTemplate, rocket::http::Status> {
+    let posts = posts::table
+        .inner_join(post_paths::table)
+        .order(posts::timestamp.desc())
+        .limit(10)
+        .select(Post::as_select())
+        .load(&mut db)
+        .await
+        .map_err(log_error)?;
+
+    Ok(IndexTemplate { base_url: config.base_url.clone(), posts: posts })
 }
 
 /// Serve the Atom feed.

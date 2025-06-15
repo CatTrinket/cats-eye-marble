@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% import "helpers.html" as helpers %}
 
 {% block title %}{{ post.title }} – Cat's Eye Marble{% endblock %}
 
@@ -59,38 +60,14 @@
 
     <section id="browsing">
         {% if let Some(prev_post) = prev_post %}
-            <a class="prev" href="{{ prev_post.path }}">
-                <b class="browsing-label">Prev:</b>
-                <span class="browsing-title
-                     {% if prev_post.has_proper_title %}proper-title{% endif %}
-                ">{{ prev_post.title }}</span>
-                <img
-                    src="{{ prev_post.path }}/thumbnail?height=100"
-                    alt=""  {#- The title is right beside it #}
-                    srcset="
-                        {{ prev_post.path }}/thumbnail?height=100 1x,
-                        {{ prev_post.path }}/thumbnail?height=200 2x,
-                        {{ prev_post.path }}/thumbnail?height=400 4x
-                    "
-                >
-            </a>
+            {% call helpers::post_link(
+                prev_post, size=100, classes="prev", label="Prev:"
+            ) %}
         {% endif %}
         {% if let Some(next_post) = next_post %}
-            <a class="next" href="{{ next_post.path }}">
-                <b class="browsing-label">Next:</b>
-                <span class="browsing-title
-                     {% if next_post.has_proper_title %}proper-title{% endif %}
-                ">{{ next_post.title }}</span>
-                <img
-                    src="{{ next_post.path }}/thumbnail?height=100"
-                    alt=""
-                    srcset="
-                        {{ next_post.path }}/thumbnail?height=100 1x,
-                        {{ next_post.path }}/thumbnail?height=200 2x,
-                        {{ next_post.path }}/thumbnail?height=400 4x
-                    "
-                >
-            </a>
+            {% call helpers::post_link(
+                next_post, size=100, classes="next", label="Next:"
+            ) %}
         {% endif %}
     </section>
 

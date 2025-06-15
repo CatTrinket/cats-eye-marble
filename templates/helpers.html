@@ -1,0 +1,29 @@
+{% macro post_link(post, size, classes, label) %}
+    {# TODO: make classes and label default to "" once I can upgrade Askama #}
+    <a href="{{ post.path }}" class="post-link {{ classes }}">
+        <figure>
+            <img
+                src="{{ post.path }}/thumbnail?height={{ size }}"
+                alt=""
+                srcset="{{ post.path }}/thumbnail?height={{ size * 2 }} 2x"
+            >
+            <figcaption>
+                {% if !label.is_empty() %}
+                    <b>{{ label }}</b>
+                {% endif %}
+                <span
+                    {% if post.has_proper_title %}
+                        class="post-title proper-title"
+                    {% else %}
+                        class="post-title"
+                    {% endif %}
+                >{{ post.title }}</span>
+                <time datetime="{{
+                    post.timestamp.format("%Y-%m-%d %H:%M:%SZ")
+                }}">
+                    {{ post.timestamp.format("%Y-%m-%d") }}
+                </time>
+            </figcaption>
+        </figure>
+    </a>
+{% endmacro %}

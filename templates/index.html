@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% import "helpers.html" as helpers %}
 
 {% block open_graph %}
     <meta property="og:url" content="{{ base_url }}/">
@@ -6,6 +7,10 @@
 {% endblock %}
 
 {% block main %}
+    <section id="breadcrumbs">
+        <h1>Cat's Eye Marble</h1>
+    </section>
+
     <section>
         <h2>Hewwo, Internet!!</h2>
 
@@ -13,5 +18,13 @@
         can see some of my art (more to come, currently traipsing through my
         backlog) and there's a feed for your feedreader.  I guess that's all
         for now okay love you bye</p>
+    </section>
+
+    <section id="latest-posts">
+        <h2>Latest posts</h2>
+
+        {% for post in posts %}
+            {% call helpers::post_link(post, 100, "", "") %}
+        {% endfor %}
     </section>
 {% endblock %}

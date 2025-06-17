@@ -20,11 +20,42 @@
         for now okay love you bye</p>
     </section>
 
-    <section id="latest-posts">
-        <h2>Latest posts</h2>
+    {% if let Some((post, posts)) = posts.split_first() %}
+        <section id="latest-posts">
+            <h2>Latest posts</h2>
 
-        {% for post in posts %}
-            {% call helpers::post_link(post, 100, "", "") %}
-        {% endfor %}
-    </section>
+            <article id="very-latest-post">
+                <header>
+                    <h3>
+                        <a
+                            href="{{ post.path }}"
+                            {% if post.has_proper_title %}
+                                class="proper-title"
+                            {% endif %}
+                        >{{ post.title }}</a>
+                    </h3>
+
+                    <time datetime="{{
+                        post.timestamp.format("%Y-%m-%d %H:%M:%SZ")
+                    }}">
+                        {{ post.timestamp.format("%Y-%m-%d") }}
+                    </time>
+                </header>
+
+                <div id="latest-post-images">
+                    {% for file in files %}
+                        <img src="{{ post.path }}/files/{{ file.order }}">
+                    {% endfor %}
+                </div>
+
+                <div id="latest-post-body">{{ post.description|markdown }}</div>
+            </article>
+
+            <div id="other-latest-posts">
+                {% for post in posts %}
+                    {% call helpers::post_link(post, 100, "", "") %}
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
 {% endblock %}

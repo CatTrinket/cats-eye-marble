@@ -46,6 +46,7 @@ struct Breadcrumb {
 struct IndexTemplate {
     base_url: String,
     posts: Vec<Post>,
+    files: Vec<PostImage>,
 }
 
 /// The template for the `feed` route.
@@ -121,7 +122,22 @@ async fn index(
         .await
         .map_err(log_error)?;
 
-    Ok(IndexTemplate { base_url: config.base_url.clone(), posts: posts })
+    // Diesel will try and override posts.first() lol
+    let files = match posts.iter().next() {
+        Some(post) => PostImage::belonging_to(&post)
+            .order(post_images::order)
+            .select(PostImage::as_select())
+            .load(&mut db)
+            .await
+            .map_err(log_error)?,
+        None => vec![],
+    };
+
+    Ok(IndexTemplate {
+        base_url: config.base_url.clone(),
+        posts: posts,
+        files: files,
+    })
 }
 
 /// Serve the Atom feed.

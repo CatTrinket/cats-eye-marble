@@ -29,12 +29,12 @@ body {
     background-size: 120px;
 }
 
-header {
+body > header {
     display: flex;
     flex-direction: column;
 }
 
-header > a {
+body > header > a {
     /* Using line-height + padding to get the desired banner height so that
        a) the height will squish down proportionally on narrow screens,
        b) if it does end up using a wider font, it will wrap nicely */
@@ -163,6 +163,113 @@ blockquote {
 
 blockquote > *:first-child { margin-top: 0; }
 blockquote > *:last-child { margin-bottom: 0; }
+
+
+/*** Index page ***/
+
+section#latest-posts {
+    display: grid;
+    grid-template:
+        "header header"
+        "latest rest"
+        / 2fr 1fr;
+    gap: 1rem;
+    background: none;
+    padding: 0;
+}
+
+section#latest-posts > h2 {
+    grid-area: header;
+    margin: 0;
+}
+
+article#very-latest-post {
+    display: flex;
+    flex-direction: column;
+    grid-area: latest;
+    background: var(--color-section);
+    /* See `> header > h3 > a:after` below */
+    position: relative;
+    /* Match the other column's height */
+    height: 0;
+    min-height: 100%;
+}
+
+@media (width <= 640px) {
+    section#latest-posts {
+        display: flex;
+        flex-direction: column;
+    }
+
+    article#very-latest-post { height: auto; }
+}
+
+article#very-latest-post > header {
+    display: flex;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+article#very-latest-post > header:hover {
+    background: var(--color-section-highlight);
+}
+
+article#very-latest-post > header > h3 {
+    flex: 1;
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+article#very-latest-post > header > h3 > a:after {
+    /* Make the link's active area cover the whole header + image area */
+    /* (This makes it cover the whole post, then later we raise the post body's
+       z-index even higher) */
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+div#latest-post-images {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    background: var(--color-neutral) url(checker.svg);
+    border: solid var(--color-neutral-border);
+    border-width: 0.25rem 0;
+    min-height: 0;
+    flex-shrink: 1;
+}
+
+div#latest-post-images > img {
+    /* Squish down tall images but don't give extra space to short images */
+    flex-shrink: 1;
+    max-width: 100%;
+    min-height: 0;
+    object-fit: contain;
+}
+
+div#latest-post-body {
+    flex-grow: 1;
+    padding: 1rem 2rem;
+    z-index: 2;
+}
+div#latest-post-body > *:first-child { margin-top: 0; }
+div#latest-post-body > *:last-child { margin-bottom: 0; }
+
+div#other-latest-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    grid-area: rest;
+}
+
+div#other-latest-posts figure { flex-direction: row-reverse; }
+div#other-latest-posts figcaption { padding-left: 2rem; }
 
 
 /*** Directory page ***/
@@ -307,15 +414,3 @@ section#browsing img {
     grid-area: thumbnail;
     height: 100px;
 }
-
-
-section#latest-posts {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    background: none;
-    padding: 0;
-}
-
-section#latest-posts > h2 { margin: 0; }
-section#latest-posts img { order: 1; }

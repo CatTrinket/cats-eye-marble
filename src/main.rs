@@ -89,10 +89,72 @@ struct DirectoryTemplate {
     subdirs: Vec<Directory>,
 }
 
-/// A responder wrapping all the other responders the `path` route combines.
+/// A multi-segment request guard that matches if the path ends in "/thumbnail"
+struct ThumbnailPath {
+    /// The rest of the path before "/thumbnail"
+    path: String,
+}
+
+impl rocket::request::FromSegments<'_> for ThumbnailPath {
+    type Error = ();
+
+    fn from_segments(
+        segments: rocket::http::uri::Segments<
+            '_,
+            rocket::http::uri::fmt::Path,
+        >,
+    ) -> Result<Self, Self::Error> {
+        let path =
+            std::path::PathBuf::from_segments(segments).map_err(|_| ())?;
+
+        match path.file_name().and_then(|s| s.to_str()) {
+            Some("thumbnail") => Ok(ThumbnailPath {
+                path: format!("/{}", path.parent().unwrap().display()),
+            }),
+            _ => Err(()),
+        }
+    }
+}
+
+/// A multi-segment request guard that matches if the path ends in "/files/123"
+/// (where 123 may be any integer).
+struct FileNumPath {
+    path: String,
+    num: i32,
+}
+
+fn parse_file_path(path: &std::path::PathBuf) -> Option<FileNumPath> {
+    let num = path.file_name()?.to_str()?.parse().ok()?;
+
+    let path = path.parent()?;
+    if path.file_name()?.to_str()? != "files" {
+        return None;
+    };
+
+    let path = format!("/{}", path.parent()?.display());
+
+    Some(FileNumPath { path: path, num: num })
+}
+
+impl rocket::request::FromSegments<'_> for FileNumPath {
+    type Error = ();
+
+    fn from_segments(
+        segments: rocket::http::uri::Segments<
+            '_,
+            rocket::http::uri::fmt::Path,
+        >,
+    ) -> Result<Self, Self::Error> {
+        let path =
+            std::path::PathBuf::from_segments(segments).map_err(|_| ())?;
+
+        parse_file_path(&path).ok_or(())
+    }
+}
+
+/// A responder wrapping the other responders the `path` route combines.
 #[derive(rocket::Responder)]
 enum PathResponse {
-    File(rocket::fs::NamedFile),
     Post(PostTemplate),
     Directory(DirectoryTemplate),
 }
@@ -180,70 +242,20 @@ async fn feed(
     })
 }
 
-/// Respond to anything involving an arbitrary path.
-///
-/// At the time of writing, Rocket only lets you have a multi-segment parameter
-/// at the end of the path.  TODO: look into request guards instead
-#[rocket::get("/<path..>?<height>", rank = 1000)]
-async fn path(
-    mut db: rocket_db_pools::Connection<cem::db::CEMDB>,
-    path: std::path::PathBuf,
-    height: Option<i32>,
-    config: &rocket::State<cem::CEMConfig>,
-) -> Result<Option<PathResponse>, rocket::http::Status> {
-    // Tried to write this with .or_else but couldn't figure it out with async
-    if let Some(file) = file(&mut db, &path, &config.upload_dir).await? {
-        // First because it might not even hit the db
-        Ok(Some(PathResponse::File(file)))
-    } else if let Some(thumbnail) =
-        thumbnail(&mut db, &path, height, &config.upload_dir).await?
-    {
-        Ok(Some(PathResponse::File(thumbnail)))
-    } else if let Some(post) =
-        post(&mut db, &path, config.base_url.clone()).await?
-    {
-        Ok(Some(PathResponse::Post(post)))
-    } else if let Some(directory) =
-        directory(&mut db, &path, config.base_url.clone()).await?
-    {
-        Ok(Some(PathResponse::Directory(directory)))
-    } else {
-        Ok(None)
-    }
-}
-
-/// Parse a URL path for an individual post file.
-///
-/// e.g. `PathBuf::from("some/post/files/123")` -> `Some(("/some/post", 123))`
-/// (note that it adds the leading slash.)
-fn parse_file_path(path: &std::path::PathBuf) -> Option<(String, i32)> {
-    let num = path.file_name()?.to_str()?.parse().ok()?;
-
-    let path = path.parent()?;
-    if path.file_name()?.to_str()? != "files" {
-        return None;
-    };
-
-    let path = format!("/{}", path.parent()?.display());
-
-    Some((path, num))
-}
-
 /// Serve a single file attached to a post.
+#[rocket::get("/<path..>")]
 async fn file(
-    db: &mut rocket_db_pools::Connection<cem::db::CEMDB>,
-    path: &std::path::PathBuf,
-    upload_dir: &std::path::PathBuf,
+    mut db: rocket_db_pools::Connection<cem::db::CEMDB>,
+    path: FileNumPath,
+    config: &rocket::State<cem::CEMConfig>,
 ) -> Result<Option<rocket::fs::NamedFile>, rocket::http::Status> {
-    let Some((path, num)) = parse_file_path(path) else { return Ok(None) };
-
     let result = posts::table
         .inner_join(post_images::table)
         .inner_join(post_paths::table)
-        .filter(post_paths::path.eq(path))
-        .filter(post_images::order.eq(num))
+        .filter(post_paths::path.eq(path.path))
+        .filter(post_images::order.eq(path.num))
         .select((PostImage::as_select(), Post::as_select()))
-        .first(db)
+        .first(&mut db)
         .await
         .optional()
         .map_err(log_error)?;
@@ -255,7 +267,8 @@ async fn file(
         _ => "png",
     };
 
-    let local_path = upload_dir
+    let local_path = config
+        .upload_dir
         .join(format!("{}/files/{}.{}", post.id, image.order, suffix));
     let file =
         rocket::fs::NamedFile::open(local_path).await.map_err(log_error)?;
@@ -264,35 +277,50 @@ async fn file(
 }
 
 /// Serve a thumbnail image for a post.
+#[rocket::get("/<path..>?<height>")]
 async fn thumbnail(
-    db: &mut rocket_db_pools::Connection<cem::db::CEMDB>,
-    path: &std::path::PathBuf,
+    mut db: rocket_db_pools::Connection<cem::db::CEMDB>,
+    path: ThumbnailPath,
     height: Option<i32>,
-    upload_dir: &std::path::PathBuf,
+    config: &rocket::State<cem::CEMConfig>,
 ) -> Result<Option<rocket::fs::NamedFile>, rocket::http::Status> {
-    if path.file_name().and_then(|s| s.to_str()) != Some("thumbnail") {
-        return Ok(None);
-    }
-    let Some(path) = path.parent() else { return Ok(None) };
-    let path = format!("/{}", path.display());
-
     let result = posts::table
         .inner_join(post_paths::table)
-        .filter(post_paths::path.eq(path))
+        .filter(post_paths::path.eq(path.path))
         .select(Post::as_select())
-        .first(db)
+        .first(&mut db)
         .await
         .optional()
         .map_err(log_error)?;
     let Some(post) = result else { return Ok(None) };
 
     let height = height.unwrap_or(200);
-    let local_path =
-        upload_dir.join(format!("{}/thumbnails/{}.png", post.id, height));
+    let local_path = config
+        .upload_dir
+        .join(format!("{}/thumbnails/{}.png", post.id, height));
     let file =
         rocket::fs::NamedFile::open(local_path).await.map_err(log_error)?;
 
     Ok(Some(file))
+}
+
+/// Try to serve either a directory or post given an arbitrary path.
+#[rocket::get("/<path..>", rank = 1000)]
+async fn path(
+    mut db: rocket_db_pools::Connection<cem::db::CEMDB>,
+    path: std::path::PathBuf,
+    config: &rocket::State<cem::CEMConfig>,
+) -> Result<Option<PathResponse>, rocket::http::Status> {
+    // Tried to write this with .or_else but couldn't figure it out with async
+    if let Some(post) = post(&mut db, &path, config.base_url.clone()).await? {
+        Ok(Some(PathResponse::Post(post)))
+    } else if let Some(directory) =
+        directory(&mut db, &path, config.base_url.clone()).await?
+    {
+        Ok(Some(PathResponse::Directory(directory)))
+    } else {
+        Ok(None)
+    }
 }
 
 /// Serve the page for a post.
@@ -451,7 +479,7 @@ fn rocket() -> _ {
     rocket
         .attach(cem::db::CEMDB::init())
         .manage(config)
-        .mount("/", rocket::routes![index, feed, path])
+        .mount("/", rocket::routes![index, feed, path, thumbnail, file])
         .mount(
             format!("/static/{}", *CACHEBUST),
             rocket::fs::FileServer::from("static"),
